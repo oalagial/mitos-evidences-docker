@@ -1,0 +1,43 @@
+# Node.js
+backend/node_modules/
+frontend/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build output
+build/
+dist/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+
+# Dependency directories
+pnpify/
+.pnp/
+.pnp.js
+
+# Yarn v2
+.yarn/
+.yarnrc
+.yarn-integrity
+.yarn-metadata.json
+.yarn-requirements
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Mac OS files
+.DS_Store
+
+# Editor temporary files
+*.swp
+*~
