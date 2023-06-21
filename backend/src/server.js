@@ -45,10 +45,14 @@ app.get("/editted_services_for_evidence_distinct/:evidence_id", (req, res) => {
   // Write your SQL query as a string
   const evidence_id = req.params.evidence_id;
 
-  const sqlQuery = `SELECT  DISTINCT se.evidence_description
-    FROM services s
-    INNER JOIN editted_service_evidences se ON se.service_id = s.service_id
-    WHERE se.evidence_id = ${evidence_id};`;
+  // const sqlQuery = `SELECT  DISTINCT se.evidence_description
+  //   FROM services s
+  //   INNER JOIN clustered_evidences se ON se.service_id = s.service_id
+  //   WHERE se.evidence_id = ${evidence_id};`;
+
+  const sqlQuery = `SELECT  DISTINCT evidence_description
+    FROM clustered_evidences
+    WHERE evidence_id = ${evidence_id};`;
 
   //const sqlQuery = "select * from evidences";
   // Use the pool object to execute the query
@@ -90,7 +94,7 @@ app.get("/editted_services_for_evidence/:evidence_id", (req, res) => {
 
   const sqlQuery = `SELECT s.service_id, se.evidence_id, se.evidence_description
     FROM services s
-    INNER JOIN editted_service_evidences se ON se.service_id = s.service_id
+    INNER JOIN clustered_evidences se ON se.service_id = s.service_id
     WHERE se.evidence_id = ${evidence_id};`;
 
   //const sqlQuery = "select * from evidences";
