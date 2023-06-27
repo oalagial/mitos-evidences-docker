@@ -9,7 +9,7 @@ import {
   TablePagination,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { closeEvidenceModal } from "../features/modal/modalSlice";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -24,6 +24,7 @@ import TableBody from "@mui/material/TableBody";
 import EvidenceRow from "./EvidenceRow";
 import ServiceWithEvidenceRow from "./ServiceWithEvidenceRow";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import axios from "axios";
 
 // This component renders a modal that displays detailed information about a selected character.
 const EvidenceModal = () => {
@@ -32,34 +33,49 @@ const EvidenceModal = () => {
   const isEvidenceModalOpen = useSelector(
     (state) => state.modal.isEvidenceModalOpen
   );
-  const [showClustered, setShowClustered] = useState(false);
+  const [optionToShow, setOptionToShow] = useState("original");
 
-  // const {
-  //   isLoading,
-  //   error,
-  //   data: evidence,
-  //   refetch,
-  // } = useQuery(
-  //   ["evidence", `${shownEvidence?.evidence_type}`],
-  //   () => {
-  //     let url = `http://localhost:3003/evidence/${shownEvidence?.evidence_type}`;
-  //     return fetch(url, {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       // body: JSON.stringify({ key1: "value1", key2: "value2" }), // set your body params here
-  //     }).then((res) => {
-  //       return res.json();
-  //     });
-  //   },
-  //   {
-  //     //This flag tells React Query to keep and display previous data while refetching in the background,
-  //     // which reduces perceived latency and prevents UI flickers.
-  //     keepPreviousData: true,
-  //     enabled: !!shownEvidence?.evidence_type,
-  //   }
-  // );
+  useEffect(() => {
+    setOptionToShow("original");
+  }, [shownEvidence]);
+
+  const handleDownload = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3003/export/${shownEvidence?.evidence_type}`,
+        {
+          responseType: "blob", // Set the response type to 'blob'
+        }
+      );
+
+      // Create a temporary download link
+      const downloadUrl = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", "file.txt");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
+  let prep_url;
+
+  switch (optionToShow) {
+    case "original":
+      prep_url = "services_for_evidence_distinct";
+      break;
+    case "clustered":
+      prep_url = "editted_services_for_evidence_distinct";
+      break;
+    case "clustered_v2":
+      prep_url = "editted_v2_services_for_evidence_distinct";
+      break;
+    default:
+      console.log(`Sorry, we are out of ${optionToShow}.`);
+  }
 
   const {
     isLoadingEvidence_in_services,
@@ -67,14 +83,9 @@ const EvidenceModal = () => {
     data: evidence_in_services,
     // refetch,
   } = useQuery(
-    [
-      `${showClustered ? "editted_" : ""}evidence_in_services`,
-      `${shownEvidence?.evidence_type}`,
-    ],
+    [prep_url, `${shownEvidence?.evidence_type}`],
     () => {
-      let url = `http://localhost:3003/${
-        showClustered ? "editted_" : ""
-      }services_for_evidence_distinct/${shownEvidence?.evidence_type}`;
+      let url = `http://localhost:3003/${prep_url}/${shownEvidence?.evidence_type}`;
 
       return fetch(url, {
         method: "GET",
@@ -95,7 +106,7 @@ const EvidenceModal = () => {
   );
 
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(25);
+  const [rowsPerPage, setRowsPerPage] = React.useState(50);
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
@@ -112,6 +123,10 @@ const EvidenceModal = () => {
     setPage(0);
   };
 
+  if (!isEvidenceModalOpen) {
+    return null;
+  }
+
   return (
     <Modal
       open={isEvidenceModalOpen}
@@ -123,20 +138,51 @@ const EvidenceModal = () => {
     >
       <Box sx={modalStyle}>
         <div>
-          <Button
-            variant="contained"
-            onClick={() => setShowClustered((old) => !old)}
+          <Box
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 300px)",
+              gap: "10px",
+              justifyContent: "center",
+            }}
           >
-            {showClustered ? "Show original data" : "Show clustered data"}
-          </Button>
+            <Button
+              variant="contained"
+              onClick={() => setOptionToShow("original")}
+            >
+              Show original data
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => setOptionToShow("clustered")}
+            >
+              Show clusted data
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => setOptionToShow("clustered_v2")}
+            >
+              Show clusted data V2
+            </Button>
+          </Box>
+
           <h2>
             {shownEvidence?.evidence_type} -{" "}
             {shownEvidence?.evidence_type_title}
           </h2>
           <h3>
-            {showClustered
-              ? "Clustered data (with OpenRefine)"
-              : "Original data"}
+            {(() => {
+              switch (optionToShow) {
+                case "original":
+                  return "Original data";
+                case "clustered":
+                  return "Clustered data (with OpenRefine)";
+                case "clustered_v2":
+                  return "Clusted data v2 (with manual+openRefine)";
+                default:
+                  return "";
+              }
+            })()}
           </h3>
           <h4>({evidence_in_services?.length})</h4>
           {/* <h4>{evidence?.data.title.el}</h4> */}
@@ -144,7 +190,7 @@ const EvidenceModal = () => {
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Service Id</TableCell>
+                  <TableCell>Index</TableCell>
                   <TableCell>Description of Evidence</TableCell>
                 </TableRow>
               </TableHead>
@@ -160,6 +206,7 @@ const EvidenceModal = () => {
                     service_id={item.service_id}
                     evidence_description={item.evidence_description}
                     key={index}
+                    index={index}
                   />
                 ))}
               </TableBody>
@@ -167,7 +214,7 @@ const EvidenceModal = () => {
                 <TableRow>
                   <TablePagination
                     rowsPerPageOptions={[
-                      5, 10, 25,
+                      50, 100, 150,
                       // { label: "All", value: -1 },
                     ]}
                     colSpan={3}
@@ -188,12 +235,20 @@ const EvidenceModal = () => {
               </TableFooter>
             </Table>
           </TableContainer>
+          <Button
+            variant="contained"
+            onClick={handleDownload}
+            style={{ marginTop: 8, marginRight: 14 }}
+          >
+            Export
+          </Button>
 
           <Button
             variant="contained"
             onClick={() => {
               dispatch(closeEvidenceModal({}));
             }}
+            style={{ marginTop: 8 }}
           >
             Return to list
           </Button>
