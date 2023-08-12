@@ -7,17 +7,20 @@ interface ServiceWithEvidenceRowProps {
   service_id: number;
   evidence_description: string;
   index: number;
+  service_ids: string;
 }
 const ServiceWithEvidenceRow = ({
   service_id,
   evidence_description,
   index,
+  service_ids,
 }: ServiceWithEvidenceRowProps) => {
   return (
     <TableRow key={service_id}>
-      <TableCell>{index + 1}</TableCell>
+      {/* <TableCell>{index + 1}</TableCell> */}
       {/* <TableCell>{service_id}</TableCell> */}
       <TableCell>{evidence_description}</TableCell>
+      <TableCell>{service_ids}</TableCell>
     </TableRow>
   );
 };

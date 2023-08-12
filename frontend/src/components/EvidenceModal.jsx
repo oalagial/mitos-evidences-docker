@@ -190,8 +190,9 @@ const EvidenceModal = () => {
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Index</TableCell>
+                  {/* <TableCell>Index</TableCell> */}
                   <TableCell>Description of Evidence</TableCell>
+                  <TableCell>Service using this evidence_description</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -205,6 +206,7 @@ const EvidenceModal = () => {
                   <ServiceWithEvidenceRow
                     service_id={item.service_id}
                     evidence_description={item.evidence_description}
+                    service_ids={item.service_ids}
                     key={index}
                     index={index}
                   />

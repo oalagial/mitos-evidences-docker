@@ -110,10 +110,17 @@ app.get("/services_for_evidence_distinct/:evidence_id", (req, res) => {
   // Write your SQL query as a string
   const evidence_id = req.params.evidence_id;
 
-  const sqlQuery = `SELECT  DISTINCT se.evidence_description
+  // const sqlQuery = `SELECT  DISTINCT se.evidence_description, se.service_id
+  //   FROM services s
+  //   INNER JOIN service_evidences se ON se.service_id = s.service_id
+  //   WHERE se.evidence_id = ${evidence_id};`;
+
+  const sqlQuery = `
+    SELECT se.evidence_description, STRING_AGG(se.service_id::TEXT, ',') AS service_ids
     FROM services s
     INNER JOIN service_evidences se ON se.service_id = s.service_id
-    WHERE se.evidence_id = ${evidence_id};`;
+    WHERE se.evidence_id = ${evidence_id}
+    GROUP BY se.evidence_description;`;
 
   //const sqlQuery = "select * from evidences";
   // Use the pool object to execute the query
