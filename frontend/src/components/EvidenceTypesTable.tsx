@@ -16,6 +16,7 @@ import {
   openServiceModal,
 } from "../features/modal/modalSlice.js";
 import { useQuery } from "react-query";
+import CountEvidence from "./CountEvidence.jsx";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -117,6 +118,9 @@ const EvidenceTypesTable: React.FC<EvidenceTypesTableProps> = ({
               <StyledTableCell align="center">
                 Id of Evidence Type
               </StyledTableCell>
+              <StyledTableCell align="center">
+                Count of different evidende_descriptions
+              </StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -145,6 +149,9 @@ const EvidenceTypesTable: React.FC<EvidenceTypesTableProps> = ({
                       <TableCell align="center">{index + 1}</TableCell>
                       <TableCell align="center">{row.title.el}</TableCell>
                       <TableCell align="center">{row.id}</TableCell>
+                      <TableCell align="center">
+                        <CountEvidence evidence_type_id={row.id} />
+                      </TableCell>
                     </StyledTableRow>
                   );
                 })

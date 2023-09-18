@@ -38,6 +38,30 @@ const EvidenceModal = () => {
   useEffect(() => {
     setOptionToShow("original");
   }, [shownEvidence]);
+  //
+  // const keyPressedListener = useCallback(
+  //     (e) => {
+  //       makeSomething();
+  //
+  //       if (idOfVesselInAddMode !== null) {
+  //         if (e.key === 'Escape') {
+  //           cancelAddMode(idOfVesselInAddMode);
+  //         }
+  //         if (e.key === 'Backspace' || e.key === 'Delete') {
+  //           removeVessel(idOfVesselInAddMode, null, vesselsState);
+  //         }
+  //         if (e.key === 'u') {
+  //           handlePinUnpinVessel(idOfVesselInAddMode, false);
+  //           cancelAddMode(idOfVesselInAddMode);
+  //         }
+  //         if (e.key === 'p') {
+  //           handlePinUnpinVessel(idOfVesselInAddMode, true);
+  //           cancelAddMode(idOfVesselInAddMode);
+  //         }
+  //       }
+  //     },
+  //     [idOfVesselInAddMode, vesselsState, cancelAddMode],
+  // );
 
   const handleDownload = async () => {
     try {
@@ -52,7 +76,7 @@ const EvidenceModal = () => {
       const downloadUrl = URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.setAttribute("download", "file.txt");
+      link.setAttribute("download", `${shownEvidence?.evidence_type}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -141,7 +165,7 @@ const EvidenceModal = () => {
           <Box
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 300px)",
+              gridTemplateColumns: "repeat(1, 300px)",
               gap: "10px",
               justifyContent: "center",
             }}
@@ -152,7 +176,7 @@ const EvidenceModal = () => {
             >
               Show original data
             </Button>
-            <Button
+            {/* <Button
               variant="contained"
               onClick={() => setOptionToShow("clustered")}
             >
@@ -163,7 +187,7 @@ const EvidenceModal = () => {
               onClick={() => setOptionToShow("clustered_v2")}
             >
               Show clusted data V2
-            </Button>
+            </Button> */}
           </Box>
 
           <h2>
@@ -184,7 +208,12 @@ const EvidenceModal = () => {
               }
             })()}
           </h3>
-          <h4>({evidence_in_services?.length})</h4>
+          <div>
+            <span>Count of different evidende_descriptions: </span>
+            <span style={{ fontWeight: "bold" }}>
+              {evidence_in_services?.length}
+            </span>
+          </div>
           {/* <h4>{evidence?.data.title.el}</h4> */}
           <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
