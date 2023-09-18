@@ -15,9 +15,9 @@ app.use(cors());
 // Create a pool object to manage database connections
 const pool = new Pool({
   user: "postgres",
-  host: "db", //TODO: change this to db for docker (was localhost)
+  host: "localhost", //TODO: change this to db for docker (was localhost)
   database: "services_database",
-  password: "mitos-password", //TODO: change this to mitos-password for docker
+  password: "1997.tria", //TODO: change this to mitos-password for docker
   port: 5432, // TODO: comment this for docker
 });
 
@@ -25,84 +25,87 @@ const pool = new Pool({
 function createExcelFile(data, excelFilePath, sheetName) {
   let workbook;
   if (fs.existsSync(excelFilePath)) {
-    // Load the existing workbook if the file already exists
     const existingWorkbook = xlsx.readFile(excelFilePath);
     workbook = existingWorkbook;
   } else {
-    // Create a new workbook if the file doesn't exist
     workbook = xlsx.utils.book_new();
   }
 
   let worksheet;
   if (workbook.SheetNames.includes(sheetName)) {
-    // If sheetName exists, get the reference to it
     worksheet = workbook.Sheets[sheetName];
+
+    // Clear the existing content from the worksheet
+    xlsx.utils.sheet_add_aoa(worksheet, [], { origin: -1 });
   } else {
-    // Otherwise, create a new worksheet with the name sheetName
     worksheet = xlsx.utils.aoa_to_sheet([]);
     workbook.SheetNames.push(sheetName);
     workbook.Sheets[sheetName] = worksheet;
   }
 
-  // Append the data to the worksheet
   xlsx.utils.sheet_add_json(worksheet, data, { skipHeader: true, origin: -1 });
 
-  // Save the updated workbook to the file
   xlsx.writeFile(workbook, excelFilePath);
 
   console.log("Excel file updated:", excelFilePath);
 }
 
-app.get("/export/:evidence_id", (req, res) => {
-  // Write your SQL query as a string
-  const evidence_id = req.params.evidence_id;
+const tempDir = './temp_excel_files'; // Path to temporary directory
 
+// Ensure the temporary directory exists
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir);
+}
+
+app.get("/export/:evidence_id", async (req, res) => {
+  const evidence_id = req.params.evidence_id;
   const sqlQuery = `SELECT se.evidence_description, se.service_id, se.evidence_id
     FROM services s
     INNER JOIN service_evidences se ON se.service_id = s.service_id
     WHERE se.evidence_id = ${evidence_id};`;
 
-  //const sqlQuery = "select * from evidences";
-  // Use the pool object to execute the query
-  pool.query(sqlQuery, (err, result) => {
-    if (err) {
-      console.error(evidence_id, err);
-      res.status(500).send("Error executing query");
-    } else {
-      const excelFilePathWithEvidences = "./services_with_evidences.xlsx";
-      const allServicesWithEvidences = [];
+  try {
+    const result = await new Promise((resolve, reject) => {
+      pool.query(sqlQuery, (err, result) => {
+        if (err) {
+          console.error(evidence_id, err);
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
+    });
 
-      for (const service of result.rows) {
-        allServicesWithEvidences.push({
-          service_id: service.service_id,
-          evidence_id: service.evidence_id,
-          evidence_description: service.evidence_description,
-        });
-      }
+    const excelFilePathWithEvidences = `${tempDir}/services_with_evidences_${evidence_id}.xlsx`;
+    const allServicesWithEvidences = [];
 
-      console.log("adding all services with evidences to an excel file");
-      createExcelFile(
+    for (const service of result.rows) {
+      allServicesWithEvidences.push({
+        service_id: service.service_id,
+        evidence_id: service.evidence_id,
+        evidence_description: service.evidence_description,
+      });
+    }
+
+    await createExcelFile(
         allServicesWithEvidences,
         excelFilePathWithEvidences,
         evidence_id
-      );
+    );
 
-      //  res.send(allServicesWithEvidences);
-    }
-  });
+    const fileData = fs.readFileSync(excelFilePathWithEvidences);
 
-  // Read the file using fs module
-  const fileData = fs.readFileSync("./services_with_evidences.xlsx");
+    res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename=file_${evidence_id}.xlsx`);
 
-  // Set the response headers for file download
-  res.setHeader(
-    "Content-Type",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  );
-  res.setHeader("Content-Disposition", "attachment; filename=file.xlsx");
-
-  // Send the file data as the response
-  res.send(fileData);
+    res.send(fileData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error generating or sending the Excel file.");
+  }
 });
 
 // DISTINCT
