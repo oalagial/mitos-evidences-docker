@@ -15,10 +15,10 @@ app.use(cors());
 // Create a pool object to manage database connections
 const pool = new Pool({
   user: "postgres",
-  host: "localhost", //TODO: change this to db for docker (was localhost)
+  host: "db", //TODO: change this to db for docker (was localhost)
   database: "services_database",
-  password: "1997.tria", //TODO: change this to mitos-password for docker
-  port: 5432, // TODO: comment this for docker
+  password: "mitos-password", //TODO: change this to mitos-password for docker
+  //  port: 5432, // TODO: comment this for docker
 });
 
 // Function to create or append data to an Excel file
@@ -50,7 +50,7 @@ function createExcelFile(data, excelFilePath, sheetName) {
   console.log("Excel file updated:", excelFilePath);
 }
 
-const tempDir = './temp_excel_files'; // Path to temporary directory
+const tempDir = "./temp_excel_files"; // Path to temporary directory
 
 // Ensure the temporary directory exists
 if (!fs.existsSync(tempDir)) {
@@ -88,18 +88,21 @@ app.get("/export/:evidence_id", async (req, res) => {
     }
 
     await createExcelFile(
-        allServicesWithEvidences,
-        excelFilePathWithEvidences,
-        evidence_id
+      allServicesWithEvidences,
+      excelFilePathWithEvidences,
+      evidence_id
     );
 
     const fileData = fs.readFileSync(excelFilePathWithEvidences);
 
     res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader("Content-Disposition", `attachment; filename=file_${evidence_id}.xlsx`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=file_${evidence_id}.xlsx`
+    );
 
     res.send(fileData);
   } catch (error) {
