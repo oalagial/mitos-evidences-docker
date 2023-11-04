@@ -30,7 +30,6 @@ const CountEvidence = ({ evidence_type_id }) => {
     }
   );
 
-  console.log('aaaa', evidence_in_services)
   return <div>{evidence_in_services?.length}</div>;
 };
 

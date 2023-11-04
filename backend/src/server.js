@@ -5,6 +5,7 @@ const cors = require("cors");
 const { Pool } = require("pg");
 const xlsx = require("xlsx");
 const fs = require("fs");
+const axios = require("axios");
 
 const app = express();
 const hostname = "0.0.0.0";
@@ -18,7 +19,7 @@ const pool = new Pool({
   host: "db", //TODO: change this to db for docker (was localhost)
   database: "services_database",
   password: "mitos-password", //TODO: change this to mitos-password for docker
-  //  port: 5432, // TODO: comment this for docker
+    port: 5432, // TODO: comment this for docker
 });
 
 // Function to create or append data to an Excel file
@@ -343,6 +344,152 @@ app.get("/evidence/:evidence_id", (req, res) => {
 app.get("/ping", (req, res) => {
   res.send("Pong!");
 });
+
+app.get('/update-data', async (req, res) => {
+  try {
+    // Perform the operations you want when this endpoint is accessed
+    await createTable(); // Create database tables
+    await updateDataFromAPI(); // Fetch data from external APIs and insert into the database
+    res.json({ message: 'Data update completed' });
+  } catch (error) {
+    console.error('Error updating data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Function to create database tables
+async function createTable() {
+  // SQL query to create a table
+  const createServicesTableQuery = `
+  DROP TABLE IF EXISTS services CASCADE;
+  CREATE TABLE services (
+    service_id INT PRIMARY KEY,
+    service_title VARCHAR (2000)
+  )
+`;
+
+  const createEvidencesTableQuery = `
+  DROP TABLE IF EXISTS evidences CASCADE;
+  CREATE TABLE evidences (
+    evidence_id INT PRIMARY KEY,
+    evidence_title VARCHAR (1000)
+  )
+`;
+
+  const createServiceEvidencesTableQuery = `
+  DROP TABLE IF EXISTS service_evidences CASCADE;
+  CREATE TABLE service_evidences (
+    id SERIAL PRIMARY KEY,
+    service_id INT,
+    evidence_id INT,
+    evidence_description VARCHAR (4000)
+  )
+`;
+
+
+
+  const client = await pool.connect();
+  try {
+    await client.query(createServicesTableQuery);
+    console.log('Table "services" created successfully.');
+    await client.query(createEvidencesTableQuery);
+    console.log('Table "evidences" created successfully.');
+    await client.query(createServiceEvidencesTableQuery);
+    console.log('Table "evidences" created successfully.');
+  } catch (error) {
+    console.error('Error creating table:', error);
+  } finally {
+    client.release();
+  }
+}
+// Function to fetch data from APIs and update the database
+
+async function fetchDataFromAPI(serviceId) {
+  try {
+    const response = await axios.get(
+        `https://api.digigov.grnet.gr/v1/services/${serviceId}`,
+        {
+          headers: {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          },
+        }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching data from API:", error);
+    throw error;
+  }
+}
+
+
+// Function to fetch data from APIs and update the database
+async function updateDataFromAPI() {
+  try {
+    // Fetch data from the first API endpoint
+    const responseEvidences = await axios.get(
+        "https://api.digigov.grnet.gr/v1/registries/evidence/all",
+        {
+          headers: {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          },
+        }
+    );
+
+    // Iterate through the fetched data and insert it into the "evidences" table
+    for (const evidence of responseEvidences.data.data) {
+      const insertEvidenceQuery = `INSERT INTO evidences (evidence_id, evidence_title) VALUES ($1, $2)`;
+      try {
+        await pool.query(insertEvidenceQuery, [evidence?.id, evidence?.title?.el]);
+        console.log('Data inserted into "evidences" table.');
+      } catch (error) {
+        console.error('Error inserting data:', error);
+      }
+    }
+
+    // Fetch data from the second API endpoint
+    const responseServices = await axios.get(
+        "https://api.digigov.grnet.gr/v1/services?page=1&limit=10000",
+        {
+          headers: {
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          },
+        }
+    );
+
+    // Iterate through the fetched data and insert it into the "services" and "service_evidences" tables
+    for (const service of responseServices.data.data) {
+      const apiData = await fetchDataFromAPI(service.id);
+
+      const insertServiceQuery = `INSERT INTO services (service_id, service_title) VALUES ($1, $2)`;
+      try {
+        await pool.query(insertServiceQuery, [service?.id, service?.title?.el]);
+        console.log('Data inserted into "services" table.');
+      } catch (error) {
+        console.error('Error inserting data:', error);
+      }
+
+      if (apiData.data.metadata.process_evidences) {
+        for (const evidence of apiData.data.metadata.process_evidences) {
+          const insertServiceEvidencesQuery = `INSERT INTO service_evidences (service_id, evidence_id, evidence_description) VALUES ($1, $2, $3)`;
+          try {
+            await pool.query(insertServiceEvidencesQuery, [service?.id, evidence.evidence_type, evidence.evidence_description]);
+            console.log('Data inserted into "service_evidences" table.');
+          } catch (error) {
+            console.error('Error inserting data:', error);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching and updating data from API:", error);
+    throw error;
+  }
+}
+
 
 const server = http.createServer(app);
 

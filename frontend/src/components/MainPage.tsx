@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { Box, Tab, Tabs, Typography } from "@mui/material";
+import {Box, Button, Tab, Tabs, Typography} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import SearchBar from "./SearchBar";
 import ServicesTable from "./ServicesTable";
@@ -107,9 +107,41 @@ const MainPage: React.FC = () => {
 
   if (isLoading) return <div>'Loading...'</div>;
 
+
+  const handleUpdateDataClicked = async () => {
+    try {
+      // Call your URL and update the data in the local database
+      const response = await fetch('http://localhost:3003/update-data', {
+        method: 'GET', // or 'POST' depending on your API
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update data');
+      }
+
+      // Return the updated data or a success message
+      return response.json();
+    } catch (error) {
+      throw error;
+    }
+
+  }
   // if (error) return <div>'An error has occurred: ' + error.message</div>;
   return (
     <Box sx={{ width: "100%" }}>
+      {/*<button onClick={handleUpdateDataClicked}>Update data</button>*/}
+      <div style={{display: 'flex', alignItems: 'end', justifyContent: 'end', }}>
+        <Button
+            variant="contained"
+            onClick={handleUpdateDataClicked}
+            style={{ marginTop: 8, marginRight: 14 }}
+        >
+          Update data (~10min)
+        </Button>
+      </div>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs
           value={value}

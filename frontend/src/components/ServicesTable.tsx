@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 // import { openCharacterModal } from "../features/modal/modalSlice";
 import { visuallyHidden } from "@mui/utils";
 import { openServiceModal } from "../features/modal/modalSlice.js";
+import ServiceRow from "./ServiceRow";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -102,6 +103,9 @@ const ServicesTable: React.FC<ServicesTableProps> = ({
               </StyledTableCell> */}
               <StyledTableCell align="center">Name of Service</StyledTableCell>
               <StyledTableCell align="center">Id of Service</StyledTableCell>
+              <StyledTableCell align="center">
+                Count of Evidences
+              </StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -109,17 +113,7 @@ const ServicesTable: React.FC<ServicesTableProps> = ({
               U.stableSort(evidences.data, U.getComparator(order, orderBy))
                 // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row: any, index: number) => {
-                  return (
-                    <StyledTableRow
-                      key={row.title.el + row._id}
-                      data-testid={row.title.el + row._id}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => dispatch(openServiceModal(row))}
-                    >
-                      <TableCell align="center">{row.title.el}</TableCell>
-                      <TableCell align="center">{row.id}</TableCell>
-                    </StyledTableRow>
-                  );
+                  return <ServiceRow service={row} />;
                 })
             ) : (
               <StyledTableRow>

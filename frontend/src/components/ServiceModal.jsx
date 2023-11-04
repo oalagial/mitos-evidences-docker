@@ -67,7 +67,7 @@ const ServiceModal = () => {
   );
 
   {
-    console.log("aaa3", service_details);
+    console.log("aaa3", service_details, service);
   }
   // if (service_id) {
   return (
@@ -80,6 +80,9 @@ const ServiceModal = () => {
       aria-describedby="modal-modal-description"
     >
       <Box sx={modalStyle}>
+        <h2>
+          {service?.title.el} - {service?.id}
+        </h2>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
