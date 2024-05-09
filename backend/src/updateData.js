@@ -5,7 +5,7 @@ const { Pool } = require("pg");
 const pool = new Pool({
     user: "postgres",
     host: "localhost", // TODO: change this to db for Docker (was localhost)
-    database: "services_database",
+    database: "mitos-evidences", // changed this to postgres
     password: "1997.tria", // TODO: change this to mitos-password for Docker
 });
 
@@ -15,7 +15,8 @@ async function createTable() {
   DROP TABLE IF EXISTS services CASCADE;
   CREATE TABLE services (
     service_id INT PRIMARY KEY,
-    service_title VARCHAR (400)
+    service_title VARCHAR (400),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;
 
@@ -23,7 +24,8 @@ async function createTable() {
   DROP TABLE IF EXISTS evidences CASCADE;
   CREATE TABLE evidences (
     evidence_id INT PRIMARY KEY,
-    evidence_title VARCHAR (400)
+    evidence_title VARCHAR (400),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;
 
@@ -33,9 +35,11 @@ async function createTable() {
     id SERIAL PRIMARY KEY,
     service_id INT,
     evidence_id INT,
-    evidence_description VARCHAR (4000)
+    evidence_description VARCHAR (4000),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;
+
 
 
 
@@ -99,7 +103,7 @@ async function fetchDataFromAPI(serviceId) {
             console.log("evidence_id", evidence.id);
             console.log("evidence_title", evidence.title.el);
 
-            const insertEvidenceQuery = `INSERT INTO evidences (evidence_id, evidence_title) VALUES ($1, $2)`;
+            const insertEvidenceQuery = `INSERT INTO evidences (evidence_id, evidence_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`;
             try {
                 await pool.query(insertEvidenceQuery, [evidence?.id, evidence?.title?.el]);
                 console.log('Data inserted into "evidences" table.');
@@ -127,7 +131,7 @@ async function fetchDataFromAPI(serviceId) {
              console.log("service_id", service?.id);
             // console.log("service_title", apiData.data.metadata.process.official_title);
 
-            const insertServiceQuery = `INSERT INTO services (service_id, service_title) VALUES ($1, $2)`;
+            const insertServiceQuery = `INSERT INTO services (service_id, service_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`;
             try {
                 await pool.query(insertServiceQuery, [service?.id, service?.title?.el]);
                 console.log('Data inserted into "services" table.');
@@ -136,7 +140,7 @@ async function fetchDataFromAPI(serviceId) {
             }
             if(apiData.data.metadata.process_evidences) {
                 for(const evidence of apiData.data.metadata.process_evidences) {
-                    const insertServiceEvidencesQuery = `INSERT INTO service_evidences (service_id,evidence_id,evidence_description) VALUES ($1, $2, $3)`
+                    const insertServiceEvidencesQuery = `INSERT INTO service_evidences (service_id, evidence_id, evidence_description, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`;
                     try {
                         await pool.query(insertServiceEvidencesQuery, [service?.id, evidence.evidence_type, evidence.evidence_description]);
                         console.log('Data inserted into "service_evidences" table.');

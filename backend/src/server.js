@@ -16,9 +16,9 @@ app.use(cors());
 // Create a pool object to manage database connections
 const pool = new Pool({
   user: "postgres",
-  host: "db", //TODO: change this to db for docker (was localhost)
-  database: "services_database",
-  password: "mitos-password", //TODO: change this to mitos-password for docker
+  host: "localhost", //TODO: change this to db for docker (was localhost)
+  database: "mitos-evidences", // services_database
+  password: "1997.tria", //TODO: change this to mitos-password for docker
     port: 5432, // TODO: comment this for docker
 });
 
@@ -60,7 +60,7 @@ if (!fs.existsSync(tempDir)) {
 
 app.get("/export/:evidence_id", async (req, res) => {
   const evidence_id = req.params.evidence_id;
-  const sqlQuery = `SELECT se.evidence_description, se.service_id, se.evidence_id
+  const sqlQuery = `SELECT se.evidence_description, se.service_id, se.evidence_id, se.updated_at
     FROM services s
     INNER JOIN service_evidences se ON se.service_id = s.service_id
     WHERE se.evidence_id = ${evidence_id};`;
@@ -123,7 +123,7 @@ app.get("/services_for_evidence_distinct/:evidence_id", (req, res) => {
   //   WHERE se.evidence_id = ${evidence_id};`;
 
   const sqlQuery = `
-    SELECT se.evidence_description, STRING_AGG(se.service_id::TEXT, ',') AS service_ids
+    SELECT se.evidence_description, STRING_AGG(se.service_id::TEXT, ',') AS service_ids, MAX(se.updated_at) AS updated_at
     FROM services s
     INNER JOIN service_evidences se ON se.service_id = s.service_id
     WHERE se.evidence_id = ${evidence_id}
@@ -199,10 +199,10 @@ app.get("/services_for_evidence/:evidence_id", (req, res) => {
   // Write your SQL query as a string
   const evidence_id = req.params.evidence_id;
 
-  const sqlQuery = `SELECT s.service_id, se.evidence_id, se.evidence_description
-    FROM services s
-    INNER JOIN service_evidences se ON se.service_id = s.service_id
-    WHERE se.evidence_id = ${evidence_id};`;
+  const sqlQuery = `SELECT s.service_id, se.evidence_id, se.evidence_description, se.updated_at
+  FROM services s
+  INNER JOIN service_evidences se ON se.service_id = s.service_id
+  WHERE se.evidence_id = ${evidence_id};`;
 
   //const sqlQuery = "select * from evidences";
   // Use the pool object to execute the query
@@ -345,16 +345,16 @@ app.get("/ping", (req, res) => {
   res.send("Pong!");
 });
 
-app.get('/update-data', async (req, res) => {
-  try {
-    // Perform the operations you want when this endpoint is accessed
-    await createTable(); // Create database tables
-    await updateDataFromAPI(); // Fetch data from external APIs and insert into the database
-    res.json({ message: 'Data update completed' });
-  } catch (error) {
-    console.error('Error updating data:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+app.get('/update-data', (req, res) => {
+  setImmediate(async () => {
+    try {
+      await createTable(); // Create database tables
+      await updateDataFromAPI(); // Fetch data from external APIs and insert into the database
+    } catch (error) {
+      console.error('Error updating data:', error);
+    }
+  });
+  res.json({ message: 'Data update started' });
 });
 
 // Function to create database tables
@@ -364,7 +364,8 @@ async function createTable() {
   DROP TABLE IF EXISTS services CASCADE;
   CREATE TABLE services (
     service_id INT PRIMARY KEY,
-    service_title VARCHAR (2000)
+    service_title VARCHAR (2000),
+    updated_at TIMESTAMP
   )
 `;
 
@@ -372,7 +373,8 @@ async function createTable() {
   DROP TABLE IF EXISTS evidences CASCADE;
   CREATE TABLE evidences (
     evidence_id INT PRIMARY KEY,
-    evidence_title VARCHAR (1000)
+    evidence_title VARCHAR (1000),
+    updated_at TIMESTAMP
   )
 `;
 
@@ -382,7 +384,9 @@ async function createTable() {
     id SERIAL PRIMARY KEY,
     service_id INT,
     evidence_id INT,
-    evidence_description VARCHAR (4000)
+    evidence_description VARCHAR (4000),
+    updated_at TIMESTAMP
+
   )
 `;
 
@@ -440,7 +444,7 @@ async function updateDataFromAPI() {
 
     // Iterate through the fetched data and insert it into the "evidences" table
     for (const evidence of responseEvidences.data.data) {
-      const insertEvidenceQuery = `INSERT INTO evidences (evidence_id, evidence_title) VALUES ($1, $2)`;
+      const insertEvidenceQuery = `INSERT INTO evidences (evidence_id, evidence_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`;
       try {
         await pool.query(insertEvidenceQuery, [evidence?.id, evidence?.title?.el]);
         console.log('Data inserted into "evidences" table.');
@@ -464,7 +468,7 @@ async function updateDataFromAPI() {
     for (const service of responseServices.data.data) {
       const apiData = await fetchDataFromAPI(service.id);
 
-      const insertServiceQuery = `INSERT INTO services (service_id, service_title) VALUES ($1, $2)`;
+      const insertServiceQuery = `INSERT INTO services (service_id, service_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`;
       try {
         await pool.query(insertServiceQuery, [service?.id, service?.title?.el]);
         console.log('Data inserted into "services" table.');
@@ -474,7 +478,7 @@ async function updateDataFromAPI() {
 
       if (apiData.data.metadata.process_evidences) {
         for (const evidence of apiData.data.metadata.process_evidences) {
-          const insertServiceEvidencesQuery = `INSERT INTO service_evidences (service_id, evidence_id, evidence_description) VALUES ($1, $2, $3)`;
+          const insertServiceEvidencesQuery = `INSERT INTO service_evidences (service_id, evidence_id, evidence_description, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`;
           try {
             await pool.query(insertServiceEvidencesQuery, [service?.id, evidence.evidence_type, evidence.evidence_description]);
             console.log('Data inserted into "service_evidences" table.');
@@ -489,7 +493,6 @@ async function updateDataFromAPI() {
     throw error;
   }
 }
-
 
 const server = http.createServer(app);
 

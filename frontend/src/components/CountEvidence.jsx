@@ -1,5 +1,6 @@
 import React from "react";
 import {useQuery} from "react-query";
+import { format } from 'date-fns';
 
 const CountEvidence = ({ evidence_type_id }) => {
   const {
@@ -30,7 +31,20 @@ const CountEvidence = ({ evidence_type_id }) => {
     }
   );
 
-  return <div>{evidence_in_services?.length}</div>;
+    const latestUpdatedAt = evidence_in_services?.reduce((latest, item) => {
+        if (!item.updated_at) return latest;
+        const itemDate = new Date(item.updated_at);
+        return latest > itemDate ? latest : itemDate;
+    }, new Date(0));
+
+    return (
+        <div>
+            <span style={{border: '1px solid gray', padding: '4px', borderRadius: '50%'}}><strong>{evidence_in_services?.length}</strong></span>
+            {evidence_in_services?.length > 0 && latestUpdatedAt ?
+                <span style={{ fontSize: '0.8em' }}> ({format(latestUpdatedAt, 'dd-MM-yy hh:mm')})</span>
+                : ""}
+        </div>
+    );
 };
 
 export default CountEvidence;

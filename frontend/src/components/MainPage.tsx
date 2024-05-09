@@ -122,6 +122,9 @@ const MainPage: React.FC = () => {
         throw new Error('Failed to update data');
       }
 
+      // After clicked, reload the page
+      window.location.reload();
+
       // Return the updated data or a success message
       return response.json();
     } catch (error) {
