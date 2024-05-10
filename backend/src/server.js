@@ -6,6 +6,14 @@ const { Pool } = require("pg");
 const xlsx = require("xlsx");
 const fs = require("fs");
 const axios = require("axios");
+let pLimit;
+
+// Dynamically import p-limit
+import('p-limit').then((module) => {
+  pLimit = module.default;
+}).catch((error) => {
+  console.error('Error importing p-limit:', error);
+});
 
 const app = express();
 const hostname = "0.0.0.0";
@@ -429,9 +437,11 @@ async function fetchDataFromAPI(serviceId) {
 
 
 // Function to fetch data from APIs and update the database
+
 async function updateDataFromAPI() {
   try {
-    // Fetch data from the first API endpoint
+    const limit = pLimit(10); // Limit to 10 concurrent tasks
+
     const responseEvidences = await axios.get(
         "https://api.digigov.grnet.gr/v1/registries/evidence/all",
         {
@@ -442,18 +452,19 @@ async function updateDataFromAPI() {
         }
     );
 
-    // Iterate through the fetched data and insert it into the "evidences" table
-    for (const evidence of responseEvidences.data.data) {
-      const insertEvidenceQuery = `INSERT INTO evidences (evidence_id, evidence_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`;
-      try {
-        await pool.query(insertEvidenceQuery, [evidence?.id, evidence?.title?.el]);
-        console.log('Data inserted into "evidences" table.');
-      } catch (error) {
-        console.error('Error inserting data:', error);
-      }
-    }
+    console.log('responseEvidences', responseEvidences.data.data.length)
 
-    // Fetch data from the second API endpoint
+    const evidenceInserts = responseEvidences.data.data.map((evidence) => {
+      return limit(() => pool.query(
+          `INSERT INTO evidences (evidence_id, evidence_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`,
+          [evidence?.id, evidence?.title?.el]
+      ));
+    });
+
+    console.log('evidenceInserts', evidenceInserts.length)
+
+    await Promise.all(evidenceInserts);
+
     const responseServices = await axios.get(
         "https://api.digigov.grnet.gr/v1/services?page=1&limit=10000",
         {
@@ -464,30 +475,31 @@ async function updateDataFromAPI() {
         }
     );
 
-    // Iterate through the fetched data and insert it into the "services" and "service_evidences" tables
-    for (const service of responseServices.data.data) {
-      const apiData = await fetchDataFromAPI(service.id);
+    console.log('responseServices', responseServices.data.data.length)
 
-      const insertServiceQuery = `INSERT INTO services (service_id, service_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`;
-      try {
-        await pool.query(insertServiceQuery, [service?.id, service?.title?.el]);
-        console.log('Data inserted into "services" table.');
-      } catch (error) {
-        console.error('Error inserting data:', error);
-      }
+      const serviceInserts = responseServices.data.data.map(async (service) => {
+        const apiData = await limit(() => fetchDataFromAPI(service.id));
 
-      if (apiData.data.metadata.process_evidences) {
-        for (const evidence of apiData.data.metadata.process_evidences) {
-          const insertServiceEvidencesQuery = `INSERT INTO service_evidences (service_id, evidence_id, evidence_description, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`;
-          try {
-            await pool.query(insertServiceEvidencesQuery, [service?.id, evidence.evidence_type, evidence.evidence_description]);
-            console.log('Data inserted into "service_evidences" table.');
-          } catch (error) {
-            console.error('Error inserting data:', error);
-          }
-        }
-      }
-    }
+        const serviceInsert = limit(() => pool.query(
+            `INSERT INTO services (service_id, service_title, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP)`,
+            [service?.id, service?.title?.el]
+        ));
+
+        const evidenceInserts = apiData.data.metadata.process_evidences ? apiData.data.metadata.process_evidences.map(
+            (evidence) => {
+              return limit(() => pool.query(
+                  `INSERT INTO service_evidences (service_id, evidence_id, evidence_description, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
+                  [service?.id, evidence.evidence_type, evidence.evidence_description]
+              ));
+            }
+        ) : [];
+
+        console.log('serviceInsert', serviceInsert)
+        return Promise.all([serviceInsert, ...evidenceInserts]);
+      });
+      await Promise.all(serviceInserts);
+      console.log('finished')
+
   } catch (error) {
     console.error("Error fetching and updating data from API:", error);
     throw error;
