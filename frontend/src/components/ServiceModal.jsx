@@ -85,12 +85,12 @@ const ServiceModal = () => {
         </h2>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
+            <TableHead >
               <TableRow>
-                <TableCell>No</TableCell>
-                <TableCell>Description of Evidence</TableCell>
-                <TableCell>Id (Evidence Type)</TableCell>
-                <TableCell>Title (Evidence Type)</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>No</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Description of Evidence</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Id (Evidence Type)</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Title (Evidence Type)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

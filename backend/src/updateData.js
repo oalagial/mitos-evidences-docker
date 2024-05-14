@@ -35,7 +35,7 @@ async function createTable() {
     id SERIAL PRIMARY KEY,
     service_id INT,
     evidence_id INT,
-    evidence_description VARCHAR (4000),
+    evidence_description VARCHAR (40000),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `;

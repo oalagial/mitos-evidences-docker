@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import SearchBar from "./SearchBar";
 import ServicesTable from "./ServicesTable";
 import EvidenceTypesTable from "./EvidenceTypesTable";
+import {format} from "date-fns";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -89,6 +90,24 @@ const MainPage: React.FC = () => {
     }
   );
 
+  const {
+    isLoading: isLatestUpdateLoading,
+    error: latestUpdateError,
+    data: latestUpdate,
+  } = useQuery(
+      "latestUpdate",
+      () =>
+          fetch("http://localhost:3003/latest-update").then((res) =>
+              res.json()
+          ),
+      {
+        // This flag tells React Query to keep and display previous data while refetching in the background,
+        // which reduces perceived latency and prevents UI flickers.
+        keepPreviousData: true,
+      }
+  );
+
+
   useEffect(() => {
     refetch();
   }, [parameters]);
@@ -132,18 +151,32 @@ const MainPage: React.FC = () => {
     }
 
   }
+
+
+  let formattedDate = 'Not yet (refresh)';
+  if (latestUpdate?.latestUpdatedAt) {
+    const date = new Date(latestUpdate.latestUpdatedAt);
+    formattedDate = format(date, 'dd-MM-yy hh:mm');
+  }
+
   // if (error) return <div>'An error has occurred: ' + error.message</div>;
   return (
     <Box sx={{ width: "100%" }}>
-      {/*<button onClick={handleUpdateDataClicked}>Update data</button>*/}
       <div style={{display: 'flex', alignItems: 'end', justifyContent: 'end', }}>
-        <Button
-            variant="contained"
-            onClick={handleUpdateDataClicked}
-            style={{ marginTop: 8, marginRight: 14 }}
-        >
-          Update data (~10min)
-        </Button>
+
+       <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+         <Button
+             variant="contained"
+             onClick={handleUpdateDataClicked}
+             style={{ marginTop: 8, marginRight: 14 }}
+         >
+           Update data (~3min)
+         </Button>
+         <span >
+           <strong  style={{fontSize: '14px'}}>Latest update</strong>: <span style={{fontSize: '12px'}}>{formattedDate}</span>
+        </span>
+       </div>
+
       </div>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs

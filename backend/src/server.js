@@ -24,10 +24,10 @@ app.use(cors());
 // Create a pool object to manage database connections
 const pool = new Pool({
   user: "postgres",
-  host: "localhost", //TODO: change this to db for docker (was localhost)
-  database: "mitos-evidences", // services_database
-  password: "1997.tria", //TODO: change this to mitos-password for docker
-    port: 5432, // TODO: comment this for docker
+  host: "db", //TODO: change this to db for docker (was localhost)
+  database: "services_database", // services_database,   services_database
+  password: "mitos-password", //TODO: change this to mitos-password for docker
+ //   port: 5432, // TODO: comment this for docker
 });
 
 // Function to create or append data to an Excel file
@@ -392,7 +392,7 @@ async function createTable() {
     id SERIAL PRIMARY KEY,
     service_id INT,
     evidence_id INT,
-    evidence_description VARCHAR (4000),
+    evidence_description VARCHAR (40000),
     updated_at TIMESTAMP
 
   )
@@ -505,6 +505,18 @@ async function updateDataFromAPI() {
     throw error;
   }
 }
+
+app.get("/latest-update", async (req, res) => {
+  try {
+    const client = await pool.connect();
+    const { rows } = await client.query('SELECT MAX(updated_at) AS max_updated_at FROM service_evidences');
+    const latestUpdatedAt = rows[0].max_updated_at;
+    res.json({ latestUpdatedAt });
+  } catch (error) {
+    console.error('Error executing query:', error);
+    res.status(500).send("Error executing query");
+  }
+});
 
 const server = http.createServer(app);
 

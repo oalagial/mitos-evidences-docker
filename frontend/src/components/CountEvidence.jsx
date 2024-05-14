@@ -39,10 +39,7 @@ const CountEvidence = ({ evidence_type_id }) => {
 
     return (
         <div>
-            <span style={{border: '1px solid gray', padding: '4px', borderRadius: '50%'}}><strong>{evidence_in_services?.length}</strong></span>
-            {evidence_in_services?.length > 0 && latestUpdatedAt ?
-                <span style={{ fontSize: '0.8em' }}> ({format(latestUpdatedAt, 'dd-MM-yy hh:mm')})</span>
-                : ""}
+            <strong>{evidence_in_services?.length}</strong>
         </div>
     );
 };

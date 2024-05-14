@@ -220,8 +220,8 @@ const EvidenceModal = () => {
               <TableHead>
                 <TableRow>
                   {/* <TableCell>Index</TableCell> */}
-                  <TableCell>Description of Evidence</TableCell>
-                  <TableCell>Service using this evidence_description</TableCell>
+                  <TableCell sx={{fontWeight: 'bold'}}>Description of Evidence</TableCell>
+                  <TableCell sx={{fontWeight: 'bold'}}>Service using this evidence_description</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
