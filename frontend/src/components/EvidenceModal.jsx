@@ -209,7 +209,7 @@ const EvidenceModal = () => {
             })()}
           </h3>
           <div>
-            <span>Count of different evidende_descriptions: </span>
+            <span>Άθροισμα διαφορετικών evidende_descriptions: </span>
             <span style={{ fontWeight: "bold" }}>
               {evidence_in_services?.length}
             </span>
@@ -220,8 +220,8 @@ const EvidenceModal = () => {
               <TableHead>
                 <TableRow>
                   {/* <TableCell>Index</TableCell> */}
-                  <TableCell sx={{fontWeight: 'bold'}}>Description of Evidence</TableCell>
-                  <TableCell sx={{fontWeight: 'bold'}}>Service using this evidence_description</TableCell>
+                  <TableCell sx={{fontWeight: 'bold'}}>Περιγραφή Δικαιολογητικού (evidence_description)</TableCell>
+                  <TableCell sx={{fontWeight: 'bold'}}>Κωδικός Διαδικασίας (service)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -302,7 +302,7 @@ const modalStyle = {
   borderRadius: 10,
   textAlign: "center",
   maxHeight: "80vh",
-  overflow: "scroll",
+  overflow: "auto",
 };
 
 export default EvidenceModal;

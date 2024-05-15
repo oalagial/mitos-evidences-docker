@@ -22,7 +22,7 @@ const Header = () => {
 
   return (
     <HeaderContainer>
-      <HeaderTitle role="heading">Mitos API (Thesis for evidences)</HeaderTitle>
+      <HeaderTitle role="heading">Ανάλυση Δικαιολογητικών - Mitos API</HeaderTitle>
     </HeaderContainer>
   );
 };

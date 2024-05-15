@@ -88,9 +88,9 @@ const ServiceModal = () => {
             <TableHead >
               <TableRow>
                 <TableCell sx={{fontWeight: 'bold'}}>No</TableCell>
-                <TableCell sx={{fontWeight: 'bold'}}>Description of Evidence</TableCell>
-                <TableCell sx={{fontWeight: 'bold'}}>Id (Evidence Type)</TableCell>
-                <TableCell sx={{fontWeight: 'bold'}}>Title (Evidence Type)</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Περιγραφή Δικαιολογητικού (evidence_description)</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Κωδικός (evidence_type)</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Τίτλος (evidence_type)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -141,7 +141,7 @@ const modalStyle = {
   borderRadius: 10,
   textAlign: "center",
   maxHeight: "80vh",
-  overflow: "scroll",
+  overflow: "auto",
 };
 
 export default ServiceModal;

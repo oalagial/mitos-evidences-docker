@@ -113,13 +113,13 @@ const EvidenceTypesTable: React.FC<EvidenceTypesTableProps> = ({
             <TableRow>
               <StyledTableCell align="center">No</StyledTableCell>
               <StyledTableCell align="center">
-                Title of Evidence Type
+                Τίτλος (evidence_type)
               </StyledTableCell>
               <StyledTableCell align="center">
-                Id of Evidence Type
+                Κωδικός (evidence_type)
               </StyledTableCell>
               <StyledTableCell align="center">
-                Count of different evidende_descriptions
+                Άθροισμα διαφορετικών evidence_description
               </StyledTableCell>
             </TableRow>
           </TableHead>

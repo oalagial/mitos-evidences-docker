@@ -184,8 +184,8 @@ const MainPage: React.FC = () => {
           onChange={handleChange}
           aria-label="basic tabs example"
         >
-          <Tab label="Evidence Types" {...a11yProps(0)} />
-          <Tab label="Services" {...a11yProps(1)} />
+          <Tab label="Τύπος Δικαιολογητικών (evidence_type)" {...a11yProps(0)} sx={{textTransform: 'inherit'}} />
+          <Tab label="Διαδικασίες (services)" {...a11yProps(1)} sx={{textTransform: 'inherit'}} />
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>

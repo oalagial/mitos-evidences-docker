@@ -101,10 +101,10 @@ const ServicesTable: React.FC<ServicesTableProps> = ({
                   ) : null}
                 </TableSortLabel>
               </StyledTableCell> */}
-              <StyledTableCell align="center">Name of Service</StyledTableCell>
-              <StyledTableCell align="center">Id of Service</StyledTableCell>
+              <StyledTableCell align="center">Όνομα (service)</StyledTableCell>
+              <StyledTableCell align="center">Κωδικός (service)</StyledTableCell>
               <StyledTableCell align="center">
-                Count of Evidences
+                Πλήθος Δικαιολογητικών (evidences)
               </StyledTableCell>
             </TableRow>
           </TableHead>
