@@ -6,7 +6,7 @@ const pool = new Pool({
     user: "postgres",
     host: "localhost", // TODO: change this to db for Docker (was localhost)
     database: "mitos-evidences", // changed this to postgres
-    password: "1997.tria", // TODO: change this to mitos-password for Docker
+    password: "mitos-password", // TODO: change this to mitos-password for Docker
 });
 
 async function createTable() {

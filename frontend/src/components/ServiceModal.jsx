@@ -44,9 +44,6 @@ const ServiceModal = () => {
       //let url = `https://api.digigov.grnet.gr/v1/services?page=${page}&limit=${pageSize}`;
       let url = `http://localhost:3003/services/${service?.id}`;
 
-      // if (parameters.name || parameters.tvShows) {
-      //   url = `https://api.disneyapi.dev/character?name=${parameters.name}&tvShows=${parameters.tvShows}`;
-      // }
 
       return fetch(url, {
         method: "GET",
