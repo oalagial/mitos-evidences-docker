@@ -19,8 +19,8 @@ const ServiceWithEvidenceRow = ({
     <TableRow key={service_id}>
       {/* <TableCell>{index + 1}</TableCell> */}
       {/* <TableCell>{service_id}</TableCell> */}
-      <TableCell>{evidence_description}</TableCell>
       <TableCell>{service_ids}</TableCell>
+      <TableCell>{evidence_description}</TableCell>
     </TableRow>
   );
 };

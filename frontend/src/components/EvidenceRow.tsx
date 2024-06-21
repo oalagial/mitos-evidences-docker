@@ -64,9 +64,9 @@ const EvidenceRow = ({ evidence }: EvidenceRowProps) => {
         key={evidence.evidence_type}
       >
         <TableCell>{evidence.evidence_num_id}</TableCell>
-        <TableCell>{evidence.evidence_description}</TableCell>
-        <TableCell>{evidence.evidence_type}</TableCell>
         <TableCell>{data_of_evidence_type.data.title.el}</TableCell>
+        <TableCell>{evidence.evidence_type}</TableCell>
+        <TableCell>{evidence.evidence_description}</TableCell>
       </TableRow>
     );
   }

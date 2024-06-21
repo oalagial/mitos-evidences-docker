@@ -220,8 +220,8 @@ const EvidenceModal = () => {
               <TableHead>
                 <TableRow>
                   {/* <TableCell>Index</TableCell> */}
-                  <TableCell sx={{fontWeight: 'bold'}}>Περιγραφή Δικαιολογητικού (evidence_description)</TableCell>
                   <TableCell sx={{fontWeight: 'bold'}}>Κωδικός Διαδικασίας (service)</TableCell>
+                  <TableCell sx={{fontWeight: 'bold'}}>Περιγραφή Δικαιολογητικού (evidence_description)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

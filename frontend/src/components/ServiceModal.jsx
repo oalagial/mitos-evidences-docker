@@ -85,9 +85,9 @@ const ServiceModal = () => {
             <TableHead >
               <TableRow>
                 <TableCell sx={{fontWeight: 'bold'}}>No</TableCell>
-                <TableCell sx={{fontWeight: 'bold'}}>Περιγραφή Δικαιολογητικού (evidence_description)</TableCell>
-                <TableCell sx={{fontWeight: 'bold'}}>Κωδικός (evidence_type)</TableCell>
                 <TableCell sx={{fontWeight: 'bold'}}>Τίτλος (evidence_type)</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Κωδικός (evidence_type)</TableCell>
+                <TableCell sx={{fontWeight: 'bold'}}>Περιγραφή Δικαιολογητικού (evidence_description)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

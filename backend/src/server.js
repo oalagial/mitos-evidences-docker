@@ -68,9 +68,10 @@ if (!fs.existsSync(tempDir)) {
 
 app.get("/export/:evidence_id", async (req, res) => {
   const evidence_id = req.params.evidence_id;
-  const sqlQuery = `SELECT se.evidence_description, se.service_id, se.evidence_id, se.updated_at
+  const sqlQuery = `SELECT se.evidence_description, se.service_id, se.evidence_id, se.updated_at, e.evidence_title
     FROM services s
     INNER JOIN service_evidences se ON se.service_id = s.service_id
+    INNER JOIN evidences e ON e.evidence_id = se.evidence_id
     WHERE se.evidence_id = ${evidence_id};`;
 
   try {
@@ -92,6 +93,7 @@ app.get("/export/:evidence_id", async (req, res) => {
       allServicesWithEvidences.push({
         service_id: service.service_id,
         evidence_id: service.evidence_id,
+        evidence_title: service.evidence_title, // Add the evidence_title to each row
         evidence_description: service.evidence_description,
       });
     }
